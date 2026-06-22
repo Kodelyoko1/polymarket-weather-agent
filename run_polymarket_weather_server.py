@@ -15,7 +15,7 @@ import json
 import threading
 import logging
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from time import sleep
 
 from flask import Flask, jsonify, render_template_string
@@ -106,13 +106,13 @@ def index():
         </style>
         <script>
             function refresh() {{ location.reload(); }}
-            setInterval(refresh, 30000);  // Auto-refresh every 30s
+            setInterval(refresh, 30000);
         </script>
     </head>
     <body>
         <div class="container">
             <div class="header">
-                <h1>🌦️ PolyMarket Weather Trading Agent</h1>
+                <h1>PolyMarket Weather Trading Agent</h1>
                 <div class="status ok">Status: {_state['status'].upper()}</div>
             </div>
 
@@ -134,14 +134,6 @@ def index():
                 <div class="card{'alert' if risk.state.is_halted else ''}">
                     <h3>Open Positions</h3>
                     <div class="value">{len(risk.state.open_positions)}</div>
-                </div>
-                <div class="card{'alert' if risk.state.consecutive_losses >= 3 else ''}">
-                    <h3>Consecutive Losses</h3>
-                    <div class="value">{risk.state.consecutive_losses}</div>
-                </div>
-                <div class="card">
-                    <h3>Trading Status</h3>
-                    <div class="value">{'🟢 LIVE' if _state['is_trading'] else '🔴 HALTED' if risk.state.is_halted else '⚫ IDLE'}</div>
                 </div>
             </div>
 
@@ -186,8 +178,7 @@ def _trading_loop():
             _state["last_cycle_time"] = datetime.now().isoformat()
             _state["last_cycle_result"] = result
             _state["next_cycle_time"] = (
-                datetime.now() + 
-                __import__("datetime").timedelta(minutes=cycle_minutes)
+                datetime.now() + timedelta(minutes=cycle_minutes)
             ).isoformat()
             
             logger.info(f"Cycle complete. Next in {cycle_minutes} minutes.")
